@@ -1,0 +1,112 @@
+version: '3.4'
+
+services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  db:
+    image: postgres:12.0-alpine
+    container_name: db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "1396:5432"
+    env_file:
+      - .env.local.db
+    networks:
+      - app-network
+    restart: always
+
+  icecast:
+    image: pltnk/icecast2:latest
+    container_name: icecast
+    restart: always
+    ports:
+      - "10024:10024"
+    volumes:
+      - ./icecast.xml:/etc/icecast2/icecast.xml
+
+  liquidsoap:
+    image: pltnk/liquidsoap:latest
+    container_name: liquidsoap
+    ports:
+      - "9080:9080"
+    restart: always
+    volumes:
+      - ./script.liq:/etc/liquidsoap/script.liq
+      - ./music:/music
+
+  web_image:
+    build: .
+    image: web-image
+    command: ['echo', 'build finished']
+
+  celery_worker:
+    image: web-image
+    container_name: celery_worker
+    command: sh -c "celery -A proj worker -l info --concurrency 2"
+    depends_on:
+      - db
+      - redis
+      - web_image
+    env_file:
+      - ./.env.local
+    hostname: celery_worker
+    networks:
+      - app-network
+    volumes:
+      - .:/usr/src/app
+      - ./music:/usr/src/app/music
+      - ./staticfiles:/usr/src/app/staticfiles
+    restart: on-failure
+
+  celery_beat:
+    image: web-image
+    container_name: celery_beat
+    command: sh -c "celery -A proj beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler"
+    depends_on:
+      - db
+      - redis
+      - web_image
+    env_file:
+      - ./.env.local
+    hostname: celery_beat
+    networks:
+      - app-network
+    restart: on-failure
+    volumes:
+      - .:/usr/src/app
+      - ./music:/usr/src/app/music
+      - ./staticfiles:/usr/src/app/staticfiles
+
+#  web:
+#    image: web-image
+#    container_name: web
+#    command: "uvicorn proj.asgi:application --reload --host 0.0.0.0 --port 8005"
+#    depends_on:
+#      - db
+#      - redis
+#      - web_image
+#    ports:
+#      - "8005:8005"
+#    env_file:
+#      - ./.env.local
+#    networks:
+#      - app-network
+#    volumes:
+#      - .:/usr/src/app
+#      - ./staticfiles:/usr/src/app/staticfiles
+#    restart: always
+
+networks:
+  app-network: {}
+
+
+volumes:
+  postgres_data:

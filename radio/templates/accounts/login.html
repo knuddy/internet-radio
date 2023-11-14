@@ -1,0 +1,58 @@
+<form method="post" class="card px-3 py-5 | account-card" hx-post="{% url 'login' %}" hx-boost="true" hx-target="#modal-target" hx-push-url="false">
+  {% csrf_token %}
+  <div class="card-body">
+    <div class="mb-5 text-center">
+      <h1 class="card-title mb-1 brand-font">{{ APPLICATION_NAME }}</h1>
+      <small class="card-text text-subtle">Please sign in</small>
+      {% if form.non_field_errors %}
+        <div class="form-text text-danger text-center mt-2">
+          {% for error in form.non_field_errors %}
+            {{ error }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+    <div class="mb-2">
+
+      <div class="form-floating mb-2">
+        <input type="text" class="form-control mb-0 shadow-none" id="{{ form.username.id_for_label }}" placeholder="Enter username" name="{{ form.username.name }}" required>
+        <label for="{{ form.username.id_for_label }}">Username</label>
+      </div>
+      {% if form.username.errors %}
+        <div class="form-text text-danger">
+          {% for error in form.username.errors %}
+            {{ error }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+    <div class="mb-5">
+      <div class="form-floating mb-2">
+        <input type="password" class="form-control mb-0 shadow-none" id="{{ form.password.id_for_label }}" name="{{ form.password.name }}" required placeholder="Password">
+        <label for="{{ form.password.id_for_label }}">Password</label>
+      </div>
+      <small class="d-flex w-100 justify-content-end">
+        <a class="link link-clr-primary decoration" href="{% url 'reset_password' %}" hx-push-url="false">
+          Reset Password
+        </a>
+      </small>
+      {% if form.password.errors %}
+        <div class="form-text text-danger">
+          {% for error in form.password.errors %}
+            {{ error }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+    <div class="mb-4 text-center">
+      <button class="btn btn-primary w-100" type="submit">Login <i class="bi bi-box-arrow-in-right  align-middle"></i></button>
+    </div>
+    <hr/>
+    <div class="d-flex justify-content-evenly text-center">
+      <small>
+        Dont have an account?
+        <a class="link link-clr-primary decoration" href="#">Create account</a>
+      </small>
+    </div>
+  </div>
+</form>

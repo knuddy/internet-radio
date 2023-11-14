@@ -1,0 +1,13 @@
+celery==5.3.4
+Django==4.2.6
+psycopg2==2.9.9
+pytz==2023.3.post1
+requests==2.31.0
+redis==5.0.1
+uvicorn[standard]==0.23.2
+django-celery-beat==2.5.0
+channels==4.0.0
+channels_redis==4.1.0
+yt-dlp==2023.10.13
+whitenoise==6.6.0
+django-htmx==1.17.0
