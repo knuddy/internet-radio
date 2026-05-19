@@ -3,29 +3,19 @@ import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 import path from 'node:path';
 import fs from 'node:fs/promises';
-import dotenv from 'dotenv';
-import { QUEUES } from './const.js';
-
-dotenv.config();
-
-const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
-const REDIS_PORT = parseInt(process.env.REDIS_PORT || '6379', 10);
-const OUTPUT_DIR = process.env.DOWNLOADS_DIR || path.join(process.cwd(), 'downloads');
+import settings from '@src/settings';
 
 const execAsync = promisify(exec);
-
 
 interface SongDownloadRequest {
   url: string;
 }
 
-
 async function songDownloadJob(job: Job<SongDownloadRequest>) {
   const { url } = job.data;
 
-  await fs.mkdir(OUTPUT_DIR, { recursive: true });
-
-  const outputFilepath = path.join(OUTPUT_DIR, '%(title)s.%(ext)s');
+  await fs.mkdir(settings.DOWNLOAD_OUTPUT_DIRECTORY, { recursive: true });
+  const outputFilepath = path.join(settings.DOWNLOAD_OUTPUT_DIRECTORY, '%(title)s.%(ext)s');
 
   console.log(`[Job ${job.id}] Starting download for: ${url}`);
 
@@ -62,12 +52,12 @@ async function songDownloadJob(job: Job<SongDownloadRequest>) {
 }
 
 const worker = new Worker<SongDownloadRequest>(
-  QUEUES.DOWNLOAD_REQUEST,
+  settings.QUEUES.DOWNLOAD_REQUEST,
   songDownloadJob,
   {
     connection: {
-      host: REDIS_HOST,
-      port: REDIS_PORT
+      host: settings.REDIS_HOST,
+      port: settings.REDIS_PORT
     }
   }
 );
@@ -81,4 +71,4 @@ worker.on('failed', (job, err) => {
   console.error(`Job ${job?.id} has failed with error: ${err.message}`);
 });
 
-console.log(`Worker processing 'download-queue' connected to Redis at ${REDIS_HOST}:${REDIS_PORT}`);
+console.log(`Worker processing 'download-queue' connected to Redis at ${settings.REDIS_HOST}:${settings.REDIS_PORT}`);

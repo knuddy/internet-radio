@@ -9,23 +9,24 @@ RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json ./
 COPY backend/package.json ./backend/
 
+# Required so npm ci can resolve the lockfile links
+COPY frontend/package.json ./frontend/
+
 # Clean install dependencies across the workspace (focusing on the worker)
 RUN npm ci --workspace=backend --include-workspace-root
 
-# Copy the actual worker source code and TS configs
+# Copy the actual worker source code, TS configs, and vite config
 COPY tsconfig.base.json ./
 COPY backend/tsconfig.json ./backend/
+COPY backend/vite.config.ts ./backend/
 COPY backend/src ./backend/src
-
-# Force-install typescript in the builder stage so 'tsc' is globally accessible
-RUN npm install -g typescript
 
 
 # Build the worker into JavaScript (generates the dist/ folder)
 RUN npm run build --workspace=backend
 
-# Strip out devDependencies to keep the production image tiny
-RUN npm prune --production --workspace=backend
+# Strip out devDependencies to keep the node_modules footprint minimal
+RUN npm prune --omit=dev --workspace=backend
 
 
 # --- Production Runtime ---

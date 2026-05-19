@@ -6,14 +6,16 @@
   "scripts": {
     "dev:server": "tsx watch src/server.ts",
     "dev:worker": "tsx watch src/worker.ts",
-    "build": "tsc",
+    "manage": "tsx src/manage.ts",
+    "build": "vite build && tsc",
     "start:server": "node dist/server.js",
     "start:worker": "node dist/worker.js"
   },
   "dependencies": {
     "bullmq": "^5.76.9",
-    "pg": "^8.20.0",
+    "commander": "^14.0.3",
     "dotenv": "^17.4.2",
+    "pg": "^8.20.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

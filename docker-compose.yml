@@ -1,8 +1,9 @@
 networks:
-  infra-network: {}
+  infra-network: { }
 
 volumes:
   postgres_data:
+  redis_data:
 
 services:
   redis:
@@ -10,6 +11,9 @@ services:
     image: redis:latest
     ports:
       - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data # Persists the data directory
     networks:
       - infra-network
     restart: always
@@ -37,7 +41,7 @@ services:
     volumes:
       - ./services/icecast/icecast.xml:/etc/icecast.xml
       - ./services/icecast/entrypoint.sh:/entrypoint.sh
-    entrypoint: ["/entrypoint.sh", "icecast", "-c", "/etc/icecast.xml"]
+    entrypoint: [ "/entrypoint.sh", "icecast", "-c", "/etc/icecast.xml" ]
     networks:
       - infra-network
     restart: no
@@ -46,7 +50,7 @@ services:
     container_name: liquidsoap
     image: savonet/liquidsoap:v2.4.4
     entrypoint: [ "liquidsoap" ]
-    command: ["-f", "/etc/liquidsoap/script.liq"]
+    command: [ "-f", "/etc/liquidsoap/script.liq" ]
     ports:
       - "9080:9080"
     env_file:
