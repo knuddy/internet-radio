@@ -53,7 +53,7 @@ services:
       - .env
     volumes:
       - ./services/liquidsoap/script.liq:/etc/liquidsoap/script.liq
-      - ./services/liquidsoap/audio:/audio
+      - ${AUDIO_DIR}:/audio
     networks:
       - infra-network
     restart: no
@@ -65,6 +65,8 @@ services:
       dockerfile: backend/Dockerfile
     env_file:
       - .env
+    volumes:
+      - ${AUDIO_DIR}:/audio_shared
     depends_on:
       - db
       - redis
