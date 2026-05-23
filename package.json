@@ -2,11 +2,10 @@
   "name": "internet-radio",
   "private": true,
   "scripts": {
-    "dev:server": "npm run dev:server --workspace=backend",
-    "dev:worker": "npm run dev:worker --workspace=backend",
-    "dev:frontend": "npm run dev --workspace=frontend",
-    "build:all": "npm run build --workspaces",
-    "manage": "npm run manage --workspace=backend"
+    "dev:server": "tsx watch --tsconfig backend/tsconfig.json backend/src/server.ts",
+    "dev:worker": "tsx watch --tsconfig backend/tsconfig.json backend/src/worker.ts",
+    "manage": "tsx --tsconfig backend/tsconfig.json backend/src/manage.ts",
+    "build:all": "npm run build --workspaces"
   },
   "workspaces": [
     "frontend",
@@ -15,6 +14,7 @@
   "devDependencies": {
     "@types/node": "^24.12.4",
     "typescript": "^6.0.3",
-    "vite": "^8.0.13"
+    "vite": "^8.0.13",
+    "tsx": "^4.22.1"
   }
 }

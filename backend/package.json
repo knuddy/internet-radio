@@ -4,14 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev:server": "tsx watch src/server.ts",
-    "dev:worker": "tsx watch src/worker.ts",
-    "manage": "tsx src/manage.ts",
     "build": "vite build && tsc",
     "start:server": "node dist/server.js",
     "start:worker": "node dist/worker.js"
   },
   "dependencies": {
+    "axios": "^1.16.1",
     "bullmq": "^5.76.9",
     "commander": "^14.0.3",
     "dotenv": "^17.4.2",
@@ -19,7 +17,6 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/pg": "^8.20.0",
-    "tsx": "^4.22.1"
+    "@types/pg": "^8.20.0"
   }
 }

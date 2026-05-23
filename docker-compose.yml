@@ -1,80 +1,87 @@
 networks:
-  infra-network: { }
+    infra-network: { }
 
 volumes:
-  postgres_data:
-  redis_data:
+    postgres_data:
+    redis_data:
 
 services:
-  redis:
-    container_name: redis
-    image: redis:latest
-    ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data # Persists the data directory
-    networks:
-      - infra-network
-    restart: always
+    redis:
+        container_name: redis
+        image: redis:latest
+        ports:
+            - "6379:6379"
+        command: redis-server --appendonly yes
+        volumes:
+            - redis_data:/data # Persists the data directory
+        networks:
+            - infra-network
+        restart: always
 
-  db:
-    container_name: db
-    image: postgres:16-alpine
-    env_file:
-      - .env
-    ports:
-      - "1396:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    networks:
-      - infra-network
-    restart: always
+    db:
+        container_name: db
+        image: postgres:16-alpine
+        env_file:
+            - .env
+        ports:
+            - "1396:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data/
+        networks:
+            - infra-network
+        restart: always
 
-  icecast:
-    container_name: icecast
-    image: libretime/icecast:latest
-    ports:
-      - "${ICECAST_PORT}:${ICECAST_PORT}"
-    env_file:
-      - .env
-    volumes:
-      - ./services/icecast/icecast.xml:/etc/icecast.xml
-      - ./services/icecast/entrypoint.sh:/entrypoint.sh
-    entrypoint: [ "/entrypoint.sh", "icecast", "-c", "/etc/icecast.xml" ]
-    networks:
-      - infra-network
-    restart: no
+    icecast:
+        container_name: icecast
+        image: libretime/icecast:latest
+        ports:
+            - "${ICECAST_PORT}:${ICECAST_PORT}"
+        env_file:
+            - .env
+        volumes:
+            - ./services/icecast/icecast.xml:/etc/icecast.xml
+            - ./services/icecast/entrypoint.sh:/entrypoint.sh
+        entrypoint: [ "/entrypoint.sh", "icecast", "-c", "/etc/icecast.xml" ]
+        networks:
+            - infra-network
+        restart: no
 
-  liquidsoap:
-    container_name: liquidsoap
-    image: savonet/liquidsoap:v2.4.4
-    entrypoint: [ "liquidsoap" ]
-    command: [ "-f", "/etc/liquidsoap/script.liq" ]
-    ports:
-      - "9080:9080"
-    env_file:
-      - .env
-    volumes:
-      - ./services/liquidsoap/script.liq:/etc/liquidsoap/script.liq
-      - ${AUDIO_DIR}:/audio
-    networks:
-      - infra-network
-    restart: no
+    liquidsoap:
+        container_name: liquidsoap
+        image: savonet/liquidsoap:v2.4.4
+        entrypoint: [ "liquidsoap" ]
+        command: [ "-f", "/etc/liquidsoap/script.liq" ]
+        ports:
+            - "${LIQUIDSOAP_PORT}:${LIQUIDSOAP_PORT}"
+        env_file:
+            - .env
+        volumes:
+            - ./services/liquidsoap/script.liq:/etc/liquidsoap/script.liq
+            - ${AUDIO_HOST_DIR}:/audio/
+        networks:
+            - infra-network
+        restart: no
 
-  worker:
-    container_name: worker
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
-    env_file:
-      - .env
-    volumes:
-      - ${AUDIO_DIR}:/audio_shared
-    depends_on:
-      - db
-      - redis
-    command: node backend/dist/worker.js
-    networks:
-      - infra-network
-    restart: no
+    worker:
+        container_name: worker
+        build:
+            context: .
+            dockerfile: backend/Dockerfile
+        env_file:
+            - .env
+        environment:
+            - DB_HOST=db
+            - DB_PORT=5432
+            - REDIS_HOST=redis
+            - REDIS_PORT=6379
+            - LIQUIDSOAP_HOST=liquidsoap
+            - AUDIO_DIR=/audio
+        volumes:
+            - ${AUDIO_HOST_DIR}:/audio/
+        depends_on:
+            - db
+            - redis
+        command: node backend/dist/worker.js
+        networks:
+            - infra-network
+        restart: no
